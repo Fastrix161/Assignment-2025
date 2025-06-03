@@ -45,7 +45,7 @@ sleep 1
 }
 
 add_website(){
-list_website
+
 echo " "
 echo -e "${YELLOW}Enter a website to track (\"q\" to exit):${END}"
 read website;
@@ -58,12 +58,20 @@ then
     sleep 1
     return
 else
-    echo $website >> $Website_file
-    if [ $? -eq 0 ]
+    status=$(curl -L -I -o /dev/null -s -w "%{http_code}" $website)
+    if [ $status -ge 200 ] && [ $status -lt 300 ]
+    then
+        echo $website >> $Website_file
+        if [ $? -eq 0 ]
 	then
-        echo -e "${GREEN}Website added successfully${END}"
+            echo -e "${GREEN}Website added successfully${END}"
+        else
+	    echo -e "${RED}Error occurred. Please try again${END}"
+        fi
     else
-	echo -e "${RED}Error occurred. Please try again${END}"
+        echo -e "${RED}Error. Website not reachable.${END}"
+        sleep 1
+        return
     fi
 fi
 echo " "
@@ -95,7 +103,7 @@ then
 else
     echo -e "${BOLD}${RED}Try to choose correct options next time.${END}"
 fi
-echo" "
+echo " "
 sleep 1
 }
 
@@ -136,14 +144,21 @@ then
 	echo -e "No change occured, try again.${END}"
 	return
     else
-	sed -i "${websiteOld}c\\${websiteNew}" $Website_file
-	if [ $? -eq 0 ]
-	then
-	    echo -e "${GREEN}Edit successful.${END}"
+	status=$(curl -L -I -o /dev/null -s -w "%{http_code}" $websiteNew)
+        if [ $status -ge 200 ] && [ $status -lt 300 ]
+        then
+	    sed -i "${websiteOld}c\\${websiteNew}" $Website_file
+	    if [ $? -eq 0 ]
+	    then
+	        echo -e "${GREEN}Edit successful.${END}"
+	    else
+	        echo -e "${RED}Error occured. Exiting...${END}"
+	        sleep 1
+	        return
+	    fi
 	else
-	    echo -e "${RED}Error occured. Exiting...${END}"
+	    echo -e "${RED}Error. Website not reachable.${END}"
 	    sleep 1
-	    return
 	fi
     fi
     var=0
@@ -157,20 +172,20 @@ sleep 1
 }
 
 check_status(){
-list_website
-echo -e "${YELLOW}-----------------------------------------------------------------------------------------------------------------------------------${END}"
+
+echo -e "${YELLOW}----------------------------------------------------------------------------------------------------${END}"
 if [ ! -s $Website_file ]
 then
-    echo -e "${ITALIC}${RED}Track list is empty. Nothing to track.${END}"
+    echo -e "${ITALIC}${RED} Nothing to track.${END}"
     sleep 1
     return
 fi
 i=1
 printf "${LIGHTGRAYBG}${BOLD}${BLACK}%-8s %-60s %-15s %-40s${END}\n" "Index" "| Website url" "| Status code" "| Website status"
-echo -e "${GRAY}-----------------------------------------------------------------------------------------------------------------------------------${END}"
+echo -e "${GRAY}---------------------------------------------------------------------------------------------------${END}"
 while IFS= read line;
 do
-    status_code=$(curl -s -o /dev/null -w "%{http_code}" $line)
+    status_code=$(curl -L -I -o /dev/null -s -w "%{http_code}" $line)
     if [ $status_code -ge 200 ] && [ $status_code -lt 300 ]
     then
 	printf "${GREEN}%-8s ${LIGHTBLUE}%-60s ${YELLOW}%-15s ${LIGHTGREEN}%-40s${END}\n" "$i" "| $line" "| $status_code" "| Accesssible"
@@ -182,14 +197,14 @@ do
     fi
     ((i++))
 done <$Website_file
-echo -e "${YELLOW}-----------------------------------------------------------------------------------------------------------------------------------${END}"
+echo -e "${YELLOW}--------------------------------------------------------------------------------------------------${END}"
 sleep 1
 }
 
 main(){
 echo " "
-echo -e "${MAGENTA}----------------------------------------------------------------------------------------------------------------------------------${END}"
-echo -e "${MAGENTA}----------------------------------------------------------------------------------------------------------------------------------${END}"
+echo -e "${MAGENTA}---------------------------------------------------------------------------------------------------${END}"
+echo -e "${MAGENTA}---------------------------------------------------------------------------------------------------${END}"
 echo " "
 echo -e "${MAGENTA}"
 echo -e "   *         *      ******      *      **   **********   ********    ******     "
@@ -205,7 +220,7 @@ echo -e "${END}"
 echo " "
 echo -e "${BOLD}${BLUE}Welcome to Monter: the website status checker${END}"
 echo " "
-list_website
+
 choicer
 }
 
