@@ -95,7 +95,7 @@ then
 else
     echo -e "${BOLD}${RED}Try to choose correct options next time.${END}"
 fi
-echo" "
+echo " "
 sleep 1
 }
 
@@ -161,7 +161,7 @@ list_website
 echo -e "${YELLOW}-----------------------------------------------------------------------------------------------------------------------------------${END}"
 if [ ! -s $Website_file ]
 then
-    echo -e "${ITALIC}${RED}Track list is empty. Nothing to track.${END}"
+    echo -e "${ITALIC}${RED} Nothing to track.${END}"
     sleep 1
     return
 fi
